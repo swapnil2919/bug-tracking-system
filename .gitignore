@@ -10,7 +10,16 @@ venv/
 # Node
 node_modules/
 dist/
+dist-ssr/
 .vite/
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.local
 
 # Environment
 .env
@@ -22,3 +31,8 @@ frontend/.env
 .vscode/
 .DS_Store
 Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
