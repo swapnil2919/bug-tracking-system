@@ -2,59 +2,80 @@ from sqlalchemy import select
 
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
-from app.models.comment import Comment
 from app.models.issue import Issue, IssuePriority, IssueStatus
 from app.models.project import Project
 from app.models.user import User
 
 
+def get_or_create_user(db, name: str, email: str) -> User:
+    user = db.scalar(select(User).where(User.email == email))
+    if user:
+        return user
+
+    user = User(name=name, email=email)
+    db.add(user)
+    db.flush()
+    return user
+
+
+def get_or_create_project(db, created_by: int) -> Project:
+    project = db.scalar(select(Project).where(Project.name == "Temporary Demo Project"))
+    if project:
+        return project
+
+    project = Project(
+        name="Temporary Demo Project",
+        description="Project created for adding 100 temporary issue records.",
+        created_by=created_by,
+    )
+    db.add(project)
+    db.flush()
+    return project
+
+
 def run() -> None:
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
+
     try:
-        if db.scalar(select(User.id).limit(1)):
-            print("Database already contains data. Seed skipped.")
+        users = [
+            get_or_create_user(db, "Temp User 1", "temp.user1@example.com"),
+            get_or_create_user(db, "Temp User 2", "temp.user2@example.com"),
+            get_or_create_user(db, "Temp User 3", "temp.user3@example.com"),
+            get_or_create_user(db, "Temp User 4", "temp.user4@example.com"),
+            get_or_create_user(db, "Temp User 5", "temp.user5@example.com"),
+        ]
+        project = get_or_create_project(db, users[0].id)
+
+        existing_count = len(
+            db.scalars(
+                select(Issue).where(
+                    Issue.project_id == project.id,
+                    Issue.title.like("Temporary Issue %"),
+                )
+            ).all()
+        )
+
+        if existing_count >= 100:
+            print("100 temporary issue records already exist. No new records added.")
             return
 
-        users = [
-            User(name="Aarav Mehta", email="aarav@example.com"),
-            User(name="Maya Rao", email="maya@example.com"),
-            User(name="Neha Shah", email="neha@example.com"),
-        ]
-        db.add_all(users)
-        db.flush()
+        statuses = [IssueStatus.OPEN, IssueStatus.IN_PROGRESS, IssueStatus.DONE]
+        priorities = [IssuePriority.LOW, IssuePriority.MEDIUM, IssuePriority.HIGH]
 
-        project = Project(
-            name="Issue Tracking System",
-            description="A Jira-style workspace for tracking defects and delivery tasks.",
-            created_by=users[0].id,
-        )
-        db.add(project)
-        db.flush()
+        for number in range(existing_count + 1, 101):
+            issue = Issue(
+                title=f"Temporary Issue {number}",
+                description=f"This is temporary issue record number {number}.",
+                status=statuses[number % len(statuses)],
+                priority=priorities[number % len(priorities)],
+                project_id=project.id,
+                assigned_to=users[number % len(users)].id,
+            )
+            db.add(issue)
 
-        issues = [
-            Issue(
-                title="Design project board layout",
-                description="Create a clean overview for priorities, status, and ownership.",
-                status=IssueStatus.IN_PROGRESS,
-                priority=IssuePriority.HIGH,
-                project_id=project.id,
-                assigned_to=users[1].id,
-            ),
-            Issue(
-                title="Add comment stream",
-                description="Allow users to discuss progress directly on each issue.",
-                status=IssueStatus.OPEN,
-                priority=IssuePriority.MEDIUM,
-                project_id=project.id,
-                assigned_to=users[2].id,
-            ),
-        ]
-        db.add_all(issues)
-        db.flush()
-        db.add(Comment(issue_id=issues[0].id, user_id=users[0].id, message="Please keep the status flow simple."))
         db.commit()
-        print("Seed data created.")
+        print(f"Added {100 - existing_count} temporary issue records.")
     finally:
         db.close()
 
