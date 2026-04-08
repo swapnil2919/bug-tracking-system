@@ -1,0 +1,133 @@
+Bug Tracking System - Setup Steps
+================================
+
+This file explains how to download, install, and run the project for the first time.
+
+
+1. Required Software
+--------------------
+
+Install these tools first:
+
+1. Python 3.10 or newer
+2. Node.js and npm
+3. Git
+
+You can check them with these commands:
+
+python --version
+node --version
+npm --version
+git --version
+
+
+2. Download the Project
+-----------------------
+
+Open a terminal and run:
+
+git clone https://github.com/swapnil2919/bug-tracking-system.git
+cd bug-tracking-system
+
+
+3. Backend Setup
+----------------
+
+Go inside the backend folder:
+
+cd backend
+
+Create a Python virtual environment:
+python -m venv .wenv
+
+Activate the virtual environment on Windows:
+.wenv\Scripts\activate
+
+Install backend dependencies:
+pip install -r requirements.txt
+
+Create the environment file:
+copy .env.example .env
+
+Optional: add demo data:
+python -m app.seed
+
+Run the backend server:
+python -m uvicorn app.main:app --reload
+
+The backend should run at:
+http://localhost:8000
+
+You can open the API docs here:
+http://localhost:8000/docs
+
+
+4. Frontend Setup
+-----------------
+
+Open a new terminal and go to the frontend folder:
+cd frontend
+
+Install frontend dependencies:
+npm install
+
+Create the environment file:
+copy .env.example .env
+
+Run the frontend:
+npm run dev
+
+The frontend should run at:
+http://localhost:5173
+
+
+5. How to Use the App
+---------------------
+
+1. Start the backend first.
+2. Start the frontend second.
+3. Open http://localhost:5173 in the browser.
+4. Create a user.
+5. Create a project.
+6. Open the project.
+7. Create issues.
+8. Change issue status, priority, and assigned user.
+9. Open issue details and add comments.
+
+
+6. Database Notes
+-----------------
+
+The project uses SQLite by default.
+
+The database file is created automatically as:
+backend/bug_tracker.db
+
+This file is ignored by Git and should not be pushed to GitHub.
+
+7. Common Problems
+------------------
+
+Problem: Frontend cannot connect to backend.
+
+Solution:
+Make sure the backend is running at http://localhost:8000.
+
+
+Problem: Python dependencies are missing.
+Solution:
+Make sure the virtual environment is activated, then run:
+
+pip install -r requirements.txt
+
+Problem: npm command not found.
+
+Solution:
+Install Node.js and restart the terminal.
+
+
+Problem: Port already in use.
+
+Solution:
+Stop the old terminal process or restart the terminal.
+
