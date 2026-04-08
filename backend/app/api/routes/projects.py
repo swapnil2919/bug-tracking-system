@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, Query, Response, status
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import get_project_or_404, get_user_or_404
@@ -38,20 +38,28 @@ def get_project(project_id: int, db: Session = Depends(get_db)) -> Project:
 @router.get("/{project_id}/issues", response_model=list[IssueRead])
 def list_project_issues(
     project_id: int,
+    response: Response,
     db: Session = Depends(get_db),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     search: str | None = Query(default=None, min_length=1),
 ) -> list[Issue]:
     get_project_or_404(db, project_id)
+
     stmt = (
         select(Issue)
         .where(Issue.project_id == project_id)
         .options(selectinload(Issue.assignee))
         .order_by(Issue.created_at.desc())
-        .offset(skip)
-        .limit(min(limit, 100))
     )
+    count_stmt = select(func.count(Issue.id)).where(Issue.project_id == project_id)
+
     if search:
         stmt = stmt.where(Issue.title.ilike(f"%{search}%"))
+        count_stmt = count_stmt.where(Issue.title.ilike(f"%{search}%"))
+
+    total_issues = db.scalar(count_stmt) or 0
+    response.headers["X-Total-Count"] = str(total_issues)
+
+    stmt = stmt.offset(skip).limit(limit)
     return list(db.scalars(stmt).all())
