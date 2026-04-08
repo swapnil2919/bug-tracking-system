@@ -10,10 +10,19 @@ export const apiClient = {
   createUser: (data) => api.post('/users', data).then((res) => res.data),
   listProjects: () => api.get('/projects').then((res) => res.data),
   createProject: (data) => api.post('/projects', data).then((res) => res.data),
-  listProjectIssues: (projectId, search = '') =>
+  listProjectIssues: (projectId, page = 1, limit = 10, search = '') =>
     api
-      .get(`/projects/${projectId}/issues`, { params: search ? { search } : undefined })
-      .then((res) => res.data),
+      .get(`/projects/${projectId}/issues`, {
+        params: {
+          skip: (page - 1) * limit,
+          limit,
+          ...(search ? { search } : {}),
+        },
+      })
+      .then((res) => ({
+        issues: res.data,
+        total: Number(res.headers['x-total-count'] ?? res.data.length),
+      })),
   getIssue: (issueId) => api.get(`/issues/${issueId}`).then((res) => res.data),
   createIssue: (data) => api.post('/issues', data).then((res) => res.data),
   updateIssueStatus: (issueId, status) =>

@@ -7,12 +7,16 @@ export function IssueListPage({
   users,
   project,
   issues,
+  currentPage,
+  totalIssues,
+  issuesPerPage,
   onBack,
   onOpenIssue,
   onChangeStatus,
   onAssignIssue,
   onChangePriority,
   onCreateIssue,
+  onPageChange,
 }) {
   const [issueForm, setIssueForm] = useState({
     title: '',
@@ -20,6 +24,8 @@ export function IssueListPage({
     priority: 'MEDIUM',
     assigned_to: '',
   })
+
+  const totalPages = Math.ceil(totalIssues / issuesPerPage) || 1
 
   async function handleCreateIssue(event) {
     event.preventDefault()
@@ -31,6 +37,18 @@ export function IssueListPage({
       assigned_to: issueForm.assigned_to ? Number(issueForm.assigned_to) : null,
     })
     setIssueForm({ title: '', description: '', priority: 'MEDIUM', assigned_to: '' })
+  }
+
+  function goToPreviousPage() {
+    if (currentPage > 1) {
+      onPageChange(currentPage - 1)
+    }
+  }
+
+  function goToNextPage() {
+    if (currentPage < totalPages) {
+      onPageChange(currentPage + 1)
+    }
   }
 
   return (
@@ -123,6 +141,20 @@ export function IssueListPage({
 
         {!issues.length && <p className="empty">No issues found for this project.</p>}
       </div>
+
+      {issues.length > 0 && (
+        <div className="pagination">
+          <button onClick={goToPreviousPage} disabled={currentPage === 1}>
+            Previous
+          </button>
+          <span>
+            Page {currentPage} of {totalPages} ({totalIssues} issues)
+          </span>
+          <button onClick={goToNextPage} disabled={currentPage === totalPages}>
+            Next
+          </button>
+        </div>
+      )}
     </section>
   )
 }

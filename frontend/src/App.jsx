@@ -6,6 +6,7 @@ import { IssueDetailPage } from './pages/IssueDetailPage'
 import { IssueListPage } from './pages/IssueListPage'
 import { ProjectListPage } from './pages/ProjectListPage'
 
+const issuesPerPage = 10
 const emptyDashboard = {
   total_projects: 0,
   total_issues: 0,
@@ -30,6 +31,8 @@ function App() {
   const [users, setUsers] = useState([])
   const [projects, setProjects] = useState([])
   const [issues, setIssues] = useState([])
+  const [issuePage, setIssuePage] = useState(1)
+  const [totalIssues, setTotalIssues] = useState(0)
   const [comments, setComments] = useState([])
   const [dashboard, setDashboard] = useState(emptyDashboard)
   const [selectedProject, setSelectedProject] = useState(null)
@@ -56,7 +59,7 @@ function App() {
     }
   }
 
-  async function loadIssues(project) {
+  async function loadIssues(project, pageNumber = 1) {
     setError('')
     setSelectedProject(project)
     setSelectedIssue(null)
@@ -64,11 +67,18 @@ function App() {
     setPage('issues')
 
     try {
-      const issueList = await apiClient.listProjectIssues(project.id)
-      setIssues(issueList)
+      const issueResult = await apiClient.listProjectIssues(project.id, pageNumber, issuesPerPage)
+      setIssues(issueResult.issues)
+      setTotalIssues(issueResult.total)
+      setIssuePage(pageNumber)
     } catch (err) {
       setError(getErrorMessage(err))
     }
+  }
+
+  async function loadIssuePage(pageNumber) {
+    if (!selectedProject) return
+    await loadIssues(selectedProject, pageNumber)
   }
 
   async function openIssue(issue) {
@@ -122,10 +132,12 @@ function App() {
     try {
       await apiClient.createIssue(data)
       const dashboardData = await apiClient.getDashboard()
-      const issueList = await apiClient.listProjectIssues(selectedProject.id)
+      const issueResult = await apiClient.listProjectIssues(selectedProject.id, 1, issuesPerPage)
 
       setDashboard(dashboardData)
-      setIssues(issueList)
+      setIssues(issueResult.issues)
+      setTotalIssues(issueResult.total)
+      setIssuePage(1)
     } catch (err) {
       setError(getErrorMessage(err))
     }
@@ -139,10 +151,11 @@ function App() {
     try {
       const updatedIssue = await apiClient.updateIssueStatus(issue.id, status)
       const dashboardData = await apiClient.getDashboard()
-      const issueList = await apiClient.listProjectIssues(selectedProject.id)
+      const issueResult = await apiClient.listProjectIssues(selectedProject.id, issuePage, issuesPerPage)
 
       setDashboard(dashboardData)
-      setIssues(issueList)
+      setIssues(issueResult.issues)
+      setTotalIssues(issueResult.total)
       if (selectedIssue?.id === updatedIssue.id) {
         setSelectedIssue(updatedIssue)
       }
@@ -158,9 +171,10 @@ function App() {
 
     try {
       const updatedIssue = await apiClient.assignIssue(issue.id, assignedTo)
-      const issueList = await apiClient.listProjectIssues(selectedProject.id)
+      const issueResult = await apiClient.listProjectIssues(selectedProject.id, issuePage, issuesPerPage)
 
-      setIssues(issueList)
+      setIssues(issueResult.issues)
+      setTotalIssues(issueResult.total)
       if (selectedIssue?.id === updatedIssue.id) {
         setSelectedIssue(updatedIssue)
       }
@@ -176,9 +190,10 @@ function App() {
 
     try {
       const updatedIssue = await apiClient.updateIssuePriority(issue.id, priority)
-      const issueList = await apiClient.listProjectIssues(selectedProject.id)
+      const issueResult = await apiClient.listProjectIssues(selectedProject.id, issuePage, issuesPerPage)
 
-      setIssues(issueList)
+      setIssues(issueResult.issues)
+      setTotalIssues(issueResult.total)
       if (selectedIssue?.id === updatedIssue.id) {
         setSelectedIssue(updatedIssue)
       }
@@ -254,12 +269,16 @@ function App() {
           users={users}
           project={selectedProject}
           issues={issues}
+          currentPage={issuePage}
+          totalIssues={totalIssues}
+          issuesPerPage={issuesPerPage}
           onBack={() => setPage('projects')}
           onCreateIssue={createIssue}
           onOpenIssue={openIssue}
           onChangeStatus={changeIssueStatus}
           onAssignIssue={assignIssue}
           onChangePriority={changeIssuePriority}
+          onPageChange={loadIssuePage}
         />
       )}
 
