@@ -1,16 +1,16 @@
 # Bug Tracking System
 
-A full-stack mini issue tracker built for the assignment: FastAPI, SQLAlchemy, React, and a clean Jira-style workflow for projects, issues, assignments, status updates, and comments.
+A full-stack mini issue tracker built with FastAPI, SQLAlchemy, SQLite, React, Vite, JavaScript, and Axios. It supports a simple Jira-style workflow for projects, issues, assignments, status updates, priority changes, and comments.
 
 ## Features
 
 - User CRUD API with unique email validation.
 - Project creation and project list/detail APIs.
-- Issue creation, status updates, assignment, detail view, project issue list, title search, and pagination parameters.
+- Issue creation, status updates, priority updates, assignment, detail view, project issue list, title search, and backend pagination.
 - Issue comments with author details.
 - Dashboard API with project and issue totals.
 - React workspace for creating users/projects, browsing issues, changing status, assigning owners, and adding comments.
-- SQLite by default for local setup, with Docker Compose support for PostgreSQL.
+- SQLite database for simple local setup.
 
 ## Project Structure
 
@@ -27,9 +27,8 @@ backend/
 frontend/
   src/
     App.jsx       React pages and workflows
-    api.js        Fetch API client
-    styles.css    Application styling
-docker-compose.yml
+    api.js        Axios API client
+    App.css       Application styling
 ```
 
 ## Run Locally
@@ -59,6 +58,7 @@ Useful endpoints:
 - `POST /issues`
 - `GET /projects/{project_id}/issues`
 - `PUT /issues/{issue_id}/status`
+- `PUT /issues/{issue_id}/priority`
 - `PUT /issues/{issue_id}/assign`
 - `GET /issues/{issue_id}`
 - `POST /issues/{issue_id}/comments`
@@ -77,16 +77,6 @@ npm run dev
 
 The React app runs at `http://localhost:5173`.
 
-## Run With Docker
-
-```bash
-docker compose up --build
-```
-
-- Frontend: `http://localhost:8080`
-- Backend: `http://localhost:8000`
-- PostgreSQL: `localhost:5432`
-
 ## Database Notes
 
 The backend creates tables automatically on startup through SQLAlchemy metadata. For production work, add Alembic migrations, but this keeps the assignment easy to run and review.
@@ -97,8 +87,10 @@ Local SQLite is configured by `backend/.env`:
 DATABASE_URL=sqlite:///./bug_tracker.db
 ```
 
-Docker uses PostgreSQL:
+The SQLite database file is created locally as:
 
-```env
-DATABASE_URL=postgresql+psycopg://bug_tracker:bug_tracker@db:5432/bug_tracker
+```text
+backend/bug_tracker.db
 ```
+
+This database file is ignored by Git and should not be pushed to GitHub.
