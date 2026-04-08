@@ -154,6 +154,18 @@
   font-weight: 700;
 }
 
+.pagination {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.pagination span {
+  color: #657487;
+}
+
 .detail-box {
   display: grid;
   gap: 16px;
@@ -237,8 +249,14 @@ button:disabled {
   .page-grid,
   .dashboard,
   .issue-form,
+  .pagination,
   .table-row {
     grid-template-columns: 1fr;
+  }
+
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .issue-form textarea,
